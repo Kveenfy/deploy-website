@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление базой данных</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(240, 147, 251, 0.6);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #f54ea2 0%, #ff7676 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 78, 162, 0.4);
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 78, 162, 0.6);
+        }
+
+        /* Search bar */
+        .search-container {
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Table */
+        .table-container {
+            padding: 20px;
+            overflow-x: auto;
+            background: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            color: #495057;
+        }
+
+        tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+            transform: scale(1.01);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Action buttons in table */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .delete-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .modal-content input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* Status messages */
+        .status-message {
+            padding: 15px 20px;
+            margin: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .status-message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Footer */
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+
+        @media (max-width: 768px) {
+            .toolbar {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            th, td {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Управление базой данных</h1>
+            <p>Панель управления таблицей пользователей</p>
+        </div>
+
+        <div class="toolbar">
+            <button class="btn btn-primary" onclick="openAddModal()">
+                ➕ Добавить запись
+            </button>
+            <button class="btn btn-edit" onclick="openEditModal()">
+                ✏️ Изменить выбранное
+            </button>
+            <button class="btn btn-delete" onclick="deleteSelected()">
+                🗑️ Удалить выбранное
+            </button>
+        </div>
+
+        <div class="search-container">
+            <input type="text" class="search-box" placeholder="🔍 Поиск по таблице..." onkeyup="searchTable()">
+        </div>
+
+        <div id="statusMessage" class="status-message"></div>
+
+        <div class="table-container">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" onclick="toggleAll(this)">
+                        </th>
+                        <th>ID</th>
+                        <th>Имя</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Данные будут загружаться сюда -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>Всего записей: <span id="totalRecords">0</span> | Последнее обновление: <span id="lastUpdate">только что</span></p>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления/редактирования -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Добавить запись</h2>
+            <input type="hidden" id="editId">
+            <input type="text" id="name" placeholder="Имя пользователя">
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="saveRecord()">Сохранить</button>
+                <button class="btn btn-delete" onclick="closeModal()">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Имитация базы данных
+    let database = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetch('http://localhost:8000/getAll')
+        .then(response => response.json())
+        .then(result => {
+            database = result.data;
+            loadTable(); // Загружаем таблицу после получения данных
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки данных:', error);
+            showMessage('Ошибка загрузки данных', 'error');
+        });
+    });
+
+    let selectedRows = new Set();
+
+    // Загрузка таблицы
+    function loadTable() {
+        const tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        database.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="checkbox" onchange="toggleRow(this, ${item.id})" ${selectedRows.has(item.id) ? 'checked' : ''}></td>
+                <td>${item.id}</td>
+                <td>${item.name || ''}</td>
+                <td>
+                    <button class="action-btn edit-btn" onclick="editRecord(${item.id})">✏️ Изменить</button>
+                    <button class="action-btn delete-btn" onclick="deleteRecord(${item.id})">🗑️ Удалить</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        const totalRecords = document.getElementById('totalRecords');
+        if (totalRecords) {
+            totalRecords.textContent = database.length;
+        }
+        
+        const lastUpdate = document.getElementById('lastUpdate');
+        if (lastUpdate) {
+            lastUpdate.textContent = new Date().toLocaleTimeString();
+        }
+    }
+
+    // Поиск по таблице
+    function searchTable() {
+        const searchBox = document.querySelector('.search-box');
+        if (!searchBox) return;
+        
+        const searchText = searchBox.value.toLowerCase();
+        const rows = document.querySelectorAll('#tableBody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchText) ? '' : 'none';
+        });
+    }
+
+    // Выделение строк
+    function toggleRow(checkbox, id) {
+        if (checkbox.checked) {
+            selectedRows.add(id);
+        } else {
+            selectedRows.delete(id);
+        }
+    }
+
+    function toggleAll(checkbox) {
+        const checkboxes = document.querySelectorAll('#tableBody input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            cb.checked = checkbox.checked;
+            const row = cb.closest('tr');
+            if (row) {
+                const idCell = row.cells[1];
+                if (idCell) {
+                    const id = parseInt(idCell.textContent);
+                    if (checkbox.checked) {
+                        selectedRows.add(id);
+                    } else {
+                        selectedRows.delete(id);
+                    }
+                }
+            }
+        });
+    }
+
+    // CRUD операции
+    function openAddModal() {
+        const modalTitle = document.getElementById('modalTitle');
+        const editId = document.getElementById('editId');
+        const nameInput = document.getElementById('name');
+        
+        if (modalTitle) modalTitle.textContent = 'Добавить запись';
+        if (editId) editId.value = '';
+        if (nameInput) nameInput.value = '';
+        
+        const modal = document.getElementById('modal');
+        if (modal) modal.classList.add('active');
+    }
+
+    function openEditModal() {
+        if (selectedRows.size === 0) {
+            showMessage('Выберите запись для редактирования', 'error');
+            return;
+        }
+        if (selectedRows.size > 1) {
+            showMessage('Выберите только одну запись для редактирования', 'error');
+            return;
+        }
+        
+        const id = Array.from(selectedRows)[0];
+        editRecord(id);
+    }
+
+    function editRecord(id) {
+        const record = database.find(item => item.id === id);
+        if (record) {
+            const modalTitle = document.getElementById('modalTitle');
+            const editId = document.getElementById('editId');
+            const nameInput = document.getElementById('name');
+            
+            if (modalTitle) modalTitle.textContent = 'Редактировать запись';
+            if (editId) editId.value = record.id;
+            if (nameInput) nameInput.value = record.name || '';
+            
+            const modal = document.getElementById('modal');
+            if (modal) modal.classList.add('active');
+        }
+    }
+
+    function saveRecord() {
+        const id = document.getElementById('editId')?.value;
+        const name = document.getElementById('name')?.value;
+
+        if (!name || name.trim() === '') {
+            showMessage('Заполните поле имени', 'error');
+            return;
+        }
+
+        if (id) {
+            // Редактирование
+            const index = database.findIndex(item => item.id === parseInt(id));
+            if (index !== -1) {
+                // Отправка на сервер для обновления
+                fetch(`http://localhost:8000/update/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name: name.trim() })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.data) {
+                        database[index] = { id: parseInt(id), name: name.trim() };
+                        showMessage('Запись успешно обновлена', 'success');
+                        closeModal();
+                        loadTable();
+                    } else {
+                        showMessage('Ошибка при обновлении', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage('Ошибка соединения с сервером', 'error');
+                });
+            }
+        } else {
+            // Добавление
+            fetch('http://localhost:8000/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: name.trim() })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.data) {
+                    // Обновляем локальную базу данных
+                    database.push(result.data);
+                    showMessage('Запись успешно добавлена', 'success');
+                    closeModal();
+                    loadTable();
+                } else {
+                    showMessage('Ошибка при добавлении', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('Ошибка соединения с сервером', 'error');
+            });
+        }
+    }
+
+    function deleteRecord(id) {
+        if (confirm('Вы уверены, что хотите удалить эту запись?')) {
+            fetch(`http://localhost:8000/delete/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    database = database.filter(item => item.id !== id);
+                    selectedRows.delete(id);
+                    showMessage('Запись успешно удалена', 'success');
+                    loadTable();
+                } else {
+                    showMessage('Ошибка при удалении', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('Ошибка соединения с сервером', 'error');
+            });
+        }
+    }
+
+    function deleteSelected() {
+        if (selectedRows.size === 0) {
+            showMessage('Выберите записи для удаления', 'error');
+            return;
+        }
+
+        if (confirm(`Вы уверены, что хотите удалить ${selectedRows.size} записей?`)) {
+            const ids = Array.from(selectedRows);
+            
+            // Удаляем каждую выбранную запись
+            Promise.all(ids.map(id => 
+                fetch(`http://localhost:8000/delete/${id}`, {
+                    method: 'DELETE'
+                })
+            ))
+            .then(() => {
+                database = database.filter(item => !selectedRows.has(item.id));
+                selectedRows.clear();
+                showMessage('Записи успешно удалены', 'success');
+                loadTable();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('Ошибка при удалении', 'error');
+            });
+        }
+    }
+
+    function showMessage(text, type) {
+        const messageDiv = document.getElementById('statusMessage');
+        if (!messageDiv) return;
+        
+        messageDiv.textContent = text;
+        messageDiv.className = `status-message ${type}`;
+        
+        setTimeout(() => {
+            messageDiv.className = 'status-message';
+        }, 3000);
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('modal');
+        if (modal) modal.classList.remove('active');
+    }
+
+    // Закрытие модального окна по клику вне его
+    window.onclick = function(event) {
+        const modal = document.getElementById('modal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+</script>
+</body>
+</html>

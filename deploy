@@ -1,0 +1,132 @@
+#!/bin/bash
+[[ $EUID -ne 0 ]] && exec sudo -E "$0" "$@"
+
+set -e
+trap 'error_exit' ERR
+INSTALLED=""
+
+echo "Внимание: Для работы скрипта требуется стабильное интернет-соединение и ОС Debian 13 (trixie)"
+read -p "Вы уверены, что хотите продолжить? (y/n): " confirm
+
+if [[ "$confirm" != "y" ]]; then
+	echo "Выход из скрипта"
+	exit
+fi
+
+check_package() {
+	local package=$1
+
+	if dpkg -l | grep -q "^ii  $package"; then
+		echo "Пакет $package установлен"
+		# INSTALLED="$INSTALLED $package"
+		return 0
+	else
+		echo "Пакет $package не установлен"
+		return 1
+	fi
+}
+
+error_exit() {
+    echo ""
+    echo "Произошла ошибка"
+    
+    if [ -n "$INSTALLED" ]; then
+		read -p "Хотите ли откатить изменения? (y/n): " confirmExit
+		if [ "$confirmExit" == "y" ]; then
+			echo "Удаляю установленные пакеты: $INSTALLED"
+			apt-get remove --purge -y $INSTALLED
+		fi
+    fi
+    
+    exit 1
+}
+
+manage_installed() {
+    local package=$1
+    local service=$2
+    
+    echo ""
+    echo "Что вы хотите сделать с пакетом $package?"
+    echo "1) Пропустить (оставить как есть)"
+    echo "2) Переустановить пакет"
+    echo "3) Удалить пакет"
+    echo "4) Изменить конфигурацию"
+    read -p "Выберите действие (1-4): " action
+    
+    case $action in
+        1)
+            echo "Пропускаем $package"
+            ;;
+        2)
+            echo "Переустанавливаю $package..."
+            apt-get install --reinstall -y "$package"
+            INSTALLED="$INSTALLED $package"
+			systemctl restart "$service"
+    		echo "$service перезапущен"
+            ;;
+        3)
+            echo "Удаляю $package..."
+            apt-get remove --purge -y "$package"
+			echo $?
+            ;;
+        4)
+            echo ""
+			;;
+        *)
+            echo "Неверный выбор, пропускаем"
+            ;;
+    esac
+	
+}
+
+
+echo "Проверка операционной системы..."
+if cat /etc/os-release | grep -q 'VERSION="13 (trixie)"'; then
+    echo "Это Debian Trixie"
+else
+    echo "Внимание: обнаружена другая ОС. Возможны ошибки."
+    read -p "Вы уверены, что хотите продолжить? (y/n): " confirm
+
+    if [[ "$confirm" != "y" ]]; then
+        echo "Выход из скрипта"
+        exit
+    fi
+fi
+
+echo "Проверка интернет-соединения..."
+if ! ping -c 1 google.com &>/dev/null; then
+    echo "Нет интернет-соединения!"
+    exit 1
+fi
+
+apt-get update
+
+if check_package "openssh-server"; then
+	manage_installed "openssh-server" "ssh"
+else
+	# apt-get -y install openssh-server=1:10.0p1-7+deb13u1
+	apt-get -y install openssh-server
+	INSTALLED="$INSTALLED openssh-server"
+    systemctl status ssh | grep -B 2 'active (running)'
+fi
+
+
+if check_package "nginx"; then
+	manage_installed "nginx" "nginx"
+else
+	# apt-get -y install nginx=1.26.3-3+deb13u2
+	apt-get -y install nginx
+	INSTALLED="$INSTALLED nginx"
+    systemctl status nginx | grep -B 2 'active (running)'
+fi
+
+
+if check_package "mariadb-server"; then
+	manage_installed "mariadb-server" "mariadb"
+else
+	# apt-get -y install mariadb-server=1:11.8.6-0+deb13u1
+	apt-get -y install mariadb-server
+	INSTALLED="$INSTALLED mariadb-server"
+    systemctl status mariadb | grep -B 2 'active (running)'
+fi
+
