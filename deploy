@@ -6,7 +6,7 @@ trap 'error_exit' ERR
 INSTALLED=""
 
 echo "Внимание: Для работы скрипта требуется стабильное интернет-соединение и ОС Debian 13 (trixie)"
-read -p "Вы уверены, что хотите продолжить? (y/n): " confirm
+read -p "Вы уверены, что хотите продолжить? (y/n): " confirm < /dev/tty
 
 if [[ "$confirm" != "y" ]]; then
 	echo "Выход из скрипта"
@@ -31,7 +31,7 @@ error_exit() {
     echo "Произошла ошибка"
     
     if [ -n "$INSTALLED" ]; then
-		read -p "Хотите ли откатить изменения? (y/n): " confirmExit
+		read -p "Хотите ли откатить изменения? (y/n): " confirmExit < /dev/tty
 		if [ "$confirmExit" == "y" ]; then
 			echo "Удаляю установленные пакеты: $INSTALLED"
 			apt-get remove --purge -y $INSTALLED
@@ -51,7 +51,7 @@ manage_installed() {
     echo "2) Переустановить пакет"
     echo "3) Удалить пакет"
     echo "4) Изменить конфигурацию"
-    read -p "Выберите действие (1-4): " action
+    read -p "Выберите действие (1-4): " action < /dev/tty
     
     case $action in
         1)
@@ -85,7 +85,7 @@ if cat /etc/os-release | grep -q 'VERSION="13 (trixie)"'; then
     echo "Это Debian Trixie"
 else
     echo "Внимание: обнаружена другая ОС. Возможны ошибки."
-    read -p "Вы уверены, что хотите продолжить? (y/n): " confirm
+    read -p "Вы уверены, что хотите продолжить? (y/n): " confirm < /dev/tty
 
     if [[ "$confirm" != "y" ]]; then
         echo "Выход из скрипта"
