@@ -138,3 +138,17 @@ else
     sudo apt-get install -y nodejs
 	INSTALLED="$INSTALLED nodejs"
 fi
+
+GITHUB_USER="Kveenfy"
+REPOSITORY_NAME="seploy-website"
+APP_DIR="/var/www/testapp"
+
+mkdir -p "$APP_DIR"
+
+for file in app.js dbService.js index.html package.json package-lock.json; do
+    echo "Скачиваю $file"
+    curl -s "https://raw.githubusercontent.com/$GITHUB_USER/$REPOSITORY_NAME/main/$file" -o "$APP_DIR/$file"
+done
+
+echo "Устанавливаю зависимости npm"
+npm install --production -C "$APP_DIR"
