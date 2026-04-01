@@ -130,3 +130,11 @@ else
     systemctl status mariadb | grep -B 2 'active (running)'
 fi
 
+if check_package "nodejs"; then
+	# manage_installed "mariadb-server" "mariadb"
+    echo "nodejs уже установлен"
+else
+    curl -sSL https://deb.nodesource.com/setup_20.x | bash
+    sudo apt-get install -y nodejs
+	INSTALLED="$INSTALLED nodejs"
+fi
