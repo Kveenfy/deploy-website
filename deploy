@@ -159,6 +159,8 @@ CREATE DATABASE IF NOT EXISTS testdb;
 CREATE USER IF NOT EXISTS 'nikitaroot'@'localhost' IDENTIFIED BY '1111';
 GRANT ALL PRIVILEGES ON testdb.* TO 'nikitaroot'@'localhost';
 FLUSH PRIVILEGES;
+USE testdb;
+CREATE TABLE IF NOT EXISTS users ( id int auto_increment primary key, name varchar(30) not null);
 EOF
 
 echo "База данных testdb и пользователь nikitaroot созданы"
