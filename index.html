@@ -375,7 +375,7 @@
     let database = [];
 
     document.addEventListener('DOMContentLoaded', () => {
-        fetch('http://localhost:8000/getAll')
+        fetch('/api/getAll')
         .then(response => response.json())
         .then(result => {
             database = result.data;
@@ -521,7 +521,7 @@
             const index = database.findIndex(item => item.id === parseInt(id));
             if (index !== -1) {
                 // Отправка на сервер для обновления
-                fetch(`http://localhost:8000/update/${id}`, {
+                fetch(`/api/update/${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -546,7 +546,7 @@
             }
         } else {
             // Добавление
-            fetch('http://localhost:8000/add', {
+            fetch('/api/add', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -574,7 +574,7 @@
 
     function deleteRecord(id) {
         if (confirm('Вы уверены, что хотите удалить эту запись?')) {
-            fetch(`http://localhost:8000/delete/${id}`, {
+            fetch(`/api/delete/${id}`, {
                 method: 'DELETE'
             })
             .then(response => response.json())
@@ -606,7 +606,7 @@
             
             // Удаляем каждую выбранную запись
             Promise.all(ids.map(id => 
-                fetch(`http://localhost:8000/delete/${id}`, {
+                fetch(`/api/delete/${id}`, {
                     method: 'DELETE'
                 })
             ))
