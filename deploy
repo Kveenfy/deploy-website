@@ -179,7 +179,7 @@ server {
     server_name 192.168.1.7;
 
     location / {
-        root /var/www/testapp/public;
+        root /var/www/testapp;
         index index.html;
     }
 
