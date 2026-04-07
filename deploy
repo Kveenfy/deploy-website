@@ -168,7 +168,7 @@ echo "База данных testdb и пользователь nikitaroot соз
 echo "Создаю .env файл..."
 cat > "$APP_DIR/.env" << EOF
 PORT=8000
-USER=nikitaroot
+DB_USER=nikitaroot
 PASSWORD=1111
 DATABASE=testdb
 DB_PORT=3306
