@@ -198,7 +198,8 @@ echo "Создаю службу автозагрузки..."
 cat > /etc/systemd/system/testapp.service << EOF
 [Unit]
 Description=Node.js Test App
-After=network.target mysql.service
+After=network.target mariadb.service mysql.service
+Wants=mariadb.service mysql.service
 
 [Service]
 Type=simple
