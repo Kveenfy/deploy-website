@@ -14,7 +14,7 @@ app.use(express.urlencoded({ extended : false }));
 //app.get("/", (request, response)=> response.send("response.send"));
 
 //create
-app.post('/add', (request, response) => {
+app.post('/api/add', (request, response) => {
     const { name } = request.body;
     const db = dbService.getDbServiceInstance();
 
@@ -28,7 +28,7 @@ app.post('/add', (request, response) => {
 
 
 //read
-app.get('/getAll', (request, response) => {
+app.get('/api/getAll', (request, response) => {
     const db = dbService.getDbServiceInstance();
 
     const result = db.getAllData();
@@ -41,7 +41,7 @@ app.get('/getAll', (request, response) => {
 
 
 //edit
-app.put('/update/:id', (request, response) => {
+app.put('/api/update/:id', (request, response) => {
     const { id } = request.params;
     const { name } = request.body;
     const db = dbService.getDbServiceInstance();
@@ -54,7 +54,7 @@ app.put('/update/:id', (request, response) => {
 });
 
 //delete
-app.delete('/delete/:id', (request, response) => {
+app.delete('/api/delete/:id', (request, response) => {
     const { id } = request.params;
     const db = dbService.getDbServiceInstance();
 
