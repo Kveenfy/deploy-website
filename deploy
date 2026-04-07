@@ -152,3 +152,65 @@ done
 
 echo "Устанавливаю зависимости npm"
 npm install --production -C "$APP_DIR"
+
+echo "Настраиваю базу данных..."
+mysql << EOF
+CREATE DATABASE IF NOT EXISTS testdb;
+CREATE USER IF NOT EXISTS 'nikitaroot'@'localhost' IDENTIFIED BY '1111';
+GRANT ALL PRIVILEGES ON testdb.* TO 'nikitaroot'@'localhost';
+FLUSH PRIVILEGES;
+EOF
+
+echo "База данных testdb и пользователь nikitaroot созданы"
+
+echo "Создаю .env файл..."
+cat > "$APP_DIR/.env" << EOF
+PORT=8000
+USER=nikitaroot
+PASSWORD=1111
+DATABASE=testdb
+DB_PORT=3306
+HOST=localhost
+EOF
+
+cat > /etc/nginx/sites-available/testapp << EOF
+server {
+    listen 80;
+    server_name 192.168.1.7;
+
+    location / {
+        root /var/www/testapp/public;
+        index index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://localhost:8000;
+    }
+}
+EOF
+
+ln -sf /etc/nginx/sites-available/testapp /etc/nginx/sites-enabled/
+systemctl restart nginx
+
+echo "Создаю службу автозагрузки..."
+cat > /etc/systemd/system/testapp.service << EOF
+[Unit]
+Description=Node.js Test App
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=$APP_DIR
+ExecStart=/usr/bin/node app.js
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable testapp
+systemctl restart testapp
+
+echo "Сайт запущен и добавлен в автозагрузку!"
